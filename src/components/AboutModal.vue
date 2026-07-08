@@ -71,8 +71,8 @@ function close() {
           <p class="mt-2 leading-relaxed">
             原 Skill 的排版逻辑、6 套主题设计、公众号平台限制兜底方案由
             <strong>甲木 × 摸鱼小李</strong> 联名共建。本项目在此基础上用 Vue 3 + TypeScript 重新实现，
-            保留了全内联样式、<code class="rounded bg-gray-200 px-1 text-xs">span leaf</code> 包裹、
-            双关卡合规校验等核心特性，并新增了 AI 增强（关键词下划线 / 封面文案 / 主题推荐）和浏览器端一键复制。
+            沿用了原 Skill 的全内联样式、<code class="rounded bg-gray-200 px-1 text-xs">span leaf</code> 包裹、
+            双关卡合规校验、AI 增强（关键词下划线 / 封面文案 / 主题推荐）等核心特性，并新增了浏览器端一键复制。
           </p>
         </div>
 

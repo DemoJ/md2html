@@ -16,7 +16,7 @@
 
 [gzh-design-skill](https://github.com/isjiamu/gzh-design-skill) 是一个给 AI Agent（Claude Code / Codex / Cursor 等）用的公众号排版 Skill，由 **甲木 × 摸鱼小李** 联名共建。其排版逻辑、6 套主题设计、公众号平台限制兜底方案凝聚了两人的公众号排版实践。
 
-本项目将其从 AI Agent Skill 转化为**纯前端 Web 应用**，用 Vue 3 + TypeScript 重新实现，保留了全内联样式、`<span leaf="">` 包裹、合规校验等核心特性，并新增了 AI 增强（关键词下划线 / 封面文案 / 主题推荐）和浏览器端一键复制。
+本项目将其从 AI Agent Skill 转化为**纯前端 Web 应用**，用 Vue 3 + TypeScript 重新实现，沿用了原 Skill 的全内联样式、`<span leaf="">` 包裹、合规校验、AI 增强（关键词下划线 / 封面文案 / 主题推荐）等核心特性，并新增了浏览器端一键复制。
 
 🤝 特别感谢甲木和摸鱼小李的开源贡献，没有 gzh-design-skill 就没有这个项目。
 
