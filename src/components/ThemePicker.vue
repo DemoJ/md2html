@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useEditorStore } from '../stores/editor'
 
 const editor = useEditorStore()
@@ -24,7 +24,7 @@ function onClickOutside(e: MouseEvent) {
 onMounted(() => document.addEventListener('click', onClickOutside))
 onUnmounted(() => document.removeEventListener('click', onClickOutside))
 
-const currentTheme = editor.allThemes.find((t) => t.id === editor.selectedThemeId)
+const currentTheme = computed(() => editor.allThemes.find((t) => t.id === editor.selectedThemeId))
 </script>
 
 <template>
