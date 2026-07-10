@@ -37,6 +37,7 @@ export const graphiteMinimal = createTheme({
   description: '极简克制、留白理性、全灰阶，高端品牌质感',
   suitableFor: '设计、科技评论、专业观点、高端品牌',
   designVars,
+  codeStyle: 'light',
   components: {
     cover: (data) => {
       const v = designVars
@@ -51,31 +52,6 @@ export const graphiteMinimal = createTheme({
     <p style="font-size:11px;color:${v.mutedText};margin:0;letter-spacing:1px;">${wrapLeaf(escapeHtml(data.bottomLeft))}</p>
     ${data.tags.map((t) => `<span style="border:1px solid ${v.borderColor};color:${v.secondaryText};padding:2px 8px;border-radius:2px;font-size:10px;letter-spacing:1px;">${wrapLeaf(escapeHtml(t))}</span>`).join('')}
   </section>
-</section>`
-    },
-
-    introCard: (data) => {
-      const v = designVars
-      const author = data.author
-        ? `<p style="text-align:right;font-size:12px;color:${v.mutedText};margin:16px 0 0;letter-spacing:1px;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(`—— ${data.author}`)))}</p>`
-        : ''
-      return `<section style="margin:0 0 32px;padding:28px 0;border-top:1px solid ${v.borderColor};border-bottom:1px solid ${v.borderColor};">
-  <p style="font-size:16px;color:${v.titleColor};margin:0;line-height:2.0;letter-spacing:0.5px;font-weight:400;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(data.text)))}</p>
-  ${author}
-</section>`
-    },
-
-    toc: (items) => {
-      const v = designVars
-      const tocItems = items
-        .map(
-          (item) =>
-            `<section style="display:flex;align-items:baseline;gap:16px;margin-bottom:14px;"><span style="font-size:13px;font-weight:600;color:${v.primary};min-width:24px;letter-spacing:1px;">${wrapLeaf(escapeHtml(item.num))}</span><span style="font-size:14px;color:${v.secondaryText};line-height:1.6;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(item.title)))}</span></section>`
-        )
-        .join('')
-      return `<section style="margin:0 0 32px;padding:24px 0;border-bottom:1px solid ${v.borderColor};">
-  <p style="font-size:11px;font-weight:600;color:${v.mutedText};letter-spacing:3px;margin:0 0 18px;text-transform:uppercase;">${wrapLeaf('Index')}</p>
-  ${tocItems}
 </section>`
     },
 

@@ -37,6 +37,7 @@ export const oliveJournal = createTheme({
   description: '编辑部内刊质感，墨黑+橙色点睛，分节形式多样',
   suitableFor: '内刊手记、深度评测、案例复盘、系统性说明文档',
   designVars,
+  codeStyle: 'dark',
   components: {
     cover: (data) => {
       const v = designVars
@@ -55,32 +56,6 @@ export const oliveJournal = createTheme({
     <p style="font-size:11px;color:${v.mutedText};margin:0;font-weight:600;">${wrapLeaf(escapeHtml(data.bottomLeft))}</p>
     <section style="display:flex;gap:6px;">${data.tags.map((t) => `<span style="color:${v.secondary};font-size:10px;font-weight:700;letter-spacing:0.5px;">${wrapLeaf('#' + escapeHtml(t))}</span>`).join('')}</section>
   </section>
-</section>`
-    },
-
-    introCard: (data) => {
-      const v = designVars
-      const author = data.author
-        ? `<p style="text-align:right;font-size:12px;color:${v.mutedText};margin:12px 0 0;font-weight:500;letter-spacing:0.5px;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(`—— ${data.author}`)))}</p>`
-        : ''
-      return `<section style="margin:0 0 28px;padding:20px 24px;background:${v.lightBg};border-left:3px solid ${v.secondary};border-radius:0 6px 6px 0;">
-  <p style="font-size:12px;font-weight:700;color:${v.secondary};letter-spacing:2px;margin:0 0 10px;text-transform:uppercase;">${wrapLeaf('编者按')}</p>
-  <p style="font-size:15px;color:${v.secondaryText};margin:0;line-height:1.9;letter-spacing:0.3px;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(data.text)))}</p>
-  ${author}
-</section>`
-    },
-
-    toc: (items) => {
-      const v = designVars
-      const tocItems = items
-        .map(
-          (item) =>
-            `<section style="display:flex;align-items:center;gap:12px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid ${v.borderColor};"><span style="font-size:13px;font-weight:800;color:${v.secondary};min-width:24px;">${wrapLeaf(escapeHtml(item.num))}</span><span style="font-size:14px;color:${v.secondaryText};line-height:1.5;font-weight:500;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(item.title)))}</span></section>`
-        )
-        .join('')
-      return `<section style="margin:0 0 28px;padding:18px 22px;background:${v.lightBg};border-radius:6px;border:1px solid ${v.borderColor};">
-  <p style="font-size:11px;font-weight:700;color:${v.primary};letter-spacing:2px;margin:0 0 14px;">${wrapLeaf('本期看点')}</p>
-  ${tocItems}
 </section>`
     },
 

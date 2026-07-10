@@ -62,7 +62,7 @@ export interface ThemeComponents {
   globalContainer: (children: string) => string
   cover: (data: CoverData) => string
   introCard: (data: IntroData) => string
-  toc: (items: TocItem[]) => string
+  toc: (items: TocItem[], conclusionMarker: string) => string
   chapterTitle: (data: ChapterTitleData) => string
   bodyParagraph: (html: string) => string
   boldPrimary: (html: string) => string
@@ -82,6 +82,7 @@ export interface ThemeComponents {
   goldQuote: (text: string) => string
   tipBlock: (label: string, text: string) => string
   signature: (data: SignatureData) => string
+  footerCta: () => string
   hr: () => string
   listItem: (html: string, ordered: boolean, index: number) => string
 }
@@ -101,10 +102,11 @@ export interface CoverData {
 export interface IntroData {
   text: string
   author?: string
+  /** 无 AI 关键词时，是否把整句作为亮点高亮（贴近 skill 的 oneliner-card） */
+  highlightAll?: boolean
 }
 
 export interface TocItem {
-  num: string
   title: string
 }
 
@@ -132,6 +134,10 @@ export interface ThemeConfig {
   skeleton: string[]
   recipe: Record<string, string[]>
   mapping: Record<string, string>
+  /** 结语章编号变体（如摸鱼绿 '///'）；缺省沿用数字编号/∞ */
+  conclusionMarker?: string
+  /** 代码块深浅色：'dark' 深色(默认) / 'light' 浅色（按主题切换） */
+  codeStyle?: 'dark' | 'light'
 }
 
 // ===== AI 增强类型 =====

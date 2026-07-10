@@ -37,6 +37,7 @@ export const moyuTicket = createTheme({
   description: '票据/门票视觉隐喻，硬阴影卡片+编号+虚线撕裂边',
   suitableFor: '工具对比、创意评测、产品盘点',
   designVars,
+  codeStyle: 'dark',
   components: {
     cover: (data) => {
       const v = designVars
@@ -62,31 +63,6 @@ export const moyuTicket = createTheme({
     <p style="font-size:11px;color:${v.mutedText};margin:0;font-weight:600;letter-spacing:0.5px;">${wrapLeaf(escapeHtml(data.bottomLeft))}</p>
     <section style="display:flex;gap:4px;">${data.tags.map((t) => `<span style="background:${v.primary};color:#fff;padding:2px 8px;border-radius:3px;font-size:9px;font-weight:800;letter-spacing:0.5px;">${wrapLeaf(escapeHtml(t))}</span>`).join('')}</section>
   </section>
-</section>`
-    },
-
-    introCard: (data) => {
-      const v = designVars
-      const author = data.author
-        ? `<p style="text-align:right;font-size:12px;color:${v.mutedText};margin:10px 0 0;font-weight:600;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(`—— ${data.author}`)))}</p>`
-        : ''
-      return `<section style="margin:0 0 28px;background:${v.lightBg};border:1.5px dashed ${v.primary};border-radius:10px;padding:20px 22px;">
-  <p style="font-size:15px;color:${v.secondaryText};margin:0;line-height:1.85;letter-spacing:0.3px;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(data.text)))}</p>
-  ${author}
-</section>`
-    },
-
-    toc: (items) => {
-      const v = designVars
-      const tocItems = items
-        .map(
-          (item) =>
-            `<section style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:8px 12px;background:${v.lightBg};border-radius:6px;border:1px solid ${v.lightBorderSoft};"><span style="background:${v.primary};color:#fff;font-size:11px;font-weight:900;padding:2px 8px;border-radius:4px;min-width:28px;text-align:center;">${wrapLeaf(escapeHtml(item.num))}</span><span style="font-size:13px;color:${v.secondaryText};line-height:1.5;font-weight:500;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(item.title)))}</span></section>`
-        )
-        .join('')
-      return `<section style="margin:0 0 28px;">
-  <p style="font-size:11px;font-weight:800;color:${v.primary};letter-spacing:2px;margin:0 0 14px;text-transform:uppercase;">${wrapLeaf('TICKET · 看点')}</p>
-  ${tocItems}
 </section>`
     },
 

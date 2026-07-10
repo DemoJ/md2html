@@ -37,6 +37,7 @@ export const redWhite = createTheme({
   description: '经典编辑风，红色克制点睛，编号章节+引言卡+签名区',
   suitableFor: '深度分析、观点、力量感话题',
   designVars,
+  codeStyle: 'dark',
   components: {
     cover: (data) => {
       const v = designVars
@@ -56,31 +57,6 @@ export const redWhite = createTheme({
     <p style="font-size:12px;color:${v.mutedText};margin:0;font-weight:500;">${wrapLeaf(escapeHtml(data.bottomLeft))}</p>
     <section style="display:flex;gap:4px;">${data.tags.map((t) => `<span style="background:${v.lightBg};color:${v.primary};padding:2px 8px;border-radius:3px;font-size:10px;font-weight:600;">${wrapLeaf(escapeHtml(t))}</span>`).join('')}</section>
   </section>
-</section>`
-    },
-
-    introCard: (data) => {
-      const v = designVars
-      const author = data.author
-        ? `<p style="text-align:right;font-size:13px;color:${v.mutedText};margin:12px 0 0;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(`—— ${data.author}`)))}</p>`
-        : ''
-      return `<section style="margin:0 0 28px;border-left:3px solid ${v.primary};padding:20px 24px;background:${v.lightBg};border-radius:0 12px 12px 0;">
-  <p style="font-size:15px;color:${v.secondaryText};margin:0;line-height:1.9;letter-spacing:0.3px;font-style:italic;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(data.text)))}</p>
-  ${author}
-</section>`
-    },
-
-    toc: (items) => {
-      const v = designVars
-      const tocItems = items
-        .map(
-          (item) =>
-            `<section style="display:flex;align-items:center;gap:12px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px dashed ${v.borderColor};"><span style="font-size:20px;font-weight:900;color:${v.primary};min-width:28px;font-style:italic;">${wrapLeaf(escapeHtml(item.num))}</span><span style="font-size:14px;color:${v.secondaryText};line-height:1.6;font-weight:500;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(item.title)))}</span></section>`
-        )
-        .join('')
-      return `<section style="margin:0 0 28px;background:#FAFAFA;border-radius:12px;padding:20px 24px;">
-  <p style="font-size:12px;font-weight:700;color:${v.primary};letter-spacing:2px;margin:0 0 16px;text-transform:uppercase;">${wrapLeaf('本期看点')}</p>
-  ${tocItems}
 </section>`
     },
 

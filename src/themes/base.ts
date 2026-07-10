@@ -6,7 +6,7 @@
  * https://github.com/isjiamu/gzh-design-skill
  */
 
-import type { DesignVars, ThemeComponents, ThemeConfig } from '../core/types'
+import type { DesignVars, ThemeComponents, ThemeConfig, TocItem } from '../core/types'
 import { toFullWidthPunctuation, wrapLeaf, escapeHtml } from '../core/transform'
 
 /**
@@ -36,9 +36,9 @@ export function createBaseComponents(v: DesignVars): Partial<ThemeComponents> {
     underlineMark: (html: string) =>
       `<span style="border-bottom:2px solid ${v.lightBorder};font-weight:600;">${html}</span>`,
 
-    // 删除线
+    // 删除线 → 荧光笔（底部半高亮，按 skill 规范）
     delMark: (html: string) =>
-      `<span style="text-decoration:line-through;color:${v.mutedText};">${html}</span>`,
+      `<span style="background:linear-gradient(transparent 60%,${v.highlight} 60%);">${html}</span>`,
 
     // 引用块
     quoteBlock: (html: string) =>
@@ -130,6 +130,67 @@ export function createBaseComponents(v: DesignVars): Partial<ThemeComponents> {
         : `<span style="color:${v.primary};margin-right:8px;">${wrapLeaf('•')}</span>`
       return `<p style="margin:0 0 8px;font-size:${v.bodyFontSize};line-height:${v.bodyLineHeight};color:${v.bodyColor};display:flex;align-items:flex-start;">${marker}<span style="flex:1;">${html}</span></p>`
     },
+
+    // 目录（skill toc-scroll：横向滚动，列出所有章节，最后固定「写在最后」卡）
+    toc: (items: TocItem[], conclusionMarker: string) => {
+      const total = items.length + 1
+      const card = (partLabel: string, title: string, highlighted: boolean) => {
+        const bg = highlighted ? `linear-gradient(135deg,${v.primary},${v.secondary || v.primary})` : '#fff'
+        const numColor = highlighted ? 'rgba(255,255,255,0.75)' : v.mutedText
+        const titleColor = highlighted ? '#fff' : v.titleColor
+        const border = highlighted ? 'border:none;' : `border:1px solid ${v.borderColor};box-shadow:0 2px 6px rgba(0,0,0,0.04);`
+        return `<section style="display:inline-block;white-space:normal;vertical-align:top;width:110px;background:${bg};${border}border-radius:12px;padding:12px;margin-right:8px;">
+  <p style="font-size:9px;font-weight:700;letter-spacing:1px;margin:0 0 5px;color:${numColor};"><span leaf="">PART ${partLabel}</span></p>
+  <p style="font-size:13px;font-weight:800;margin:0;line-height:1.4;color:${titleColor};"><span leaf="">${escapeHtml(toFullWidthPunctuation(title))}</span></p>
+</section>`
+      }
+      const cards = items
+        .map((item, i) => card(String(i + 1).padStart(2, '0'), item.title, i === 0))
+        .join('')
+      const last = card(conclusionMarker, '写在最后', false)
+      return `<section style="margin:0 0 32px;">
+  <section style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+    <p style="font-size:10px;color:${v.mutedText};margin:0;text-transform:uppercase;letter-spacing:2px;font-weight:600;"><span leaf="">📦 ${total} Parts + Conclusion</span></p>
+    <p style="font-size:10px;color:${v.mutedText};margin:0;"><span leaf="">👉 滑动</span></p>
+  </section>
+  <section style="overflow-x:scroll;-webkit-overflow-scrolling:touch;white-space:nowrap;padding-bottom:8px;">
+    ${cards}${last}
+  </section>
+</section>`
+    },
+
+    // 引言卡（skill oneliner-card：虚线框 + 居中 + 关键句黄色下划线高亮）
+    introCard: (data) => {
+      const inner = data.highlightAll
+        ? `<span style="font-size:15px;color:${v.secondaryText};font-weight:bold;border-bottom:3px solid ${v.highlight};padding-bottom:2px;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(data.text)))}</span>`
+        : `<span style="font-size:15px;color:${v.secondaryText};">${wrapLeaf(escapeHtml(toFullWidthPunctuation(data.text)))}</span>`
+      const author = data.author
+        ? `<p style="text-align:right;font-size:13px;color:${v.mutedText};margin:12px 0 0;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(`—— ${data.author}`)))}</p>`
+        : ''
+      return `<section style="margin:0 0 28px;background:#FFF;border:1px dashed ${v.lightBorderSoft};border-radius:8px;padding:14px 16px;text-align:center;"><p style="margin:0;line-height:1.6;">${inner}</p>${author}</section>`
+    },
+
+    // 互动三连按钮卡（skill footer-cta：点赞/在看/转发 + THANKS FOR READING，主题色）
+    footerCta: () => {
+      const icon = (d: string) =>
+        `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`
+      const like = '<path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>'
+      const eye = '<circle cx="12" cy="12" r="3"></circle><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>'
+      const share = '<path d="M4 18v-4a8 8 0 0 1 8-8h8"></path><polyline points="16 2 20 6 16 10"></polyline>'
+      const btn = (svgPath: string, label: string, accent: boolean) =>
+        `<section style="text-align:center;color:${accent ? v.primary : v.secondaryText};">
+          <section style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;background:${accent ? v.lightBg : '#fff'};border-radius:12px;box-shadow:0 2px 4px rgba(0,0,0,0.05);border:1px solid ${accent ? v.lightBorder : v.lightGrayBg};">${icon(svgPath)}</section>
+          <span style="font-size:10px;font-weight:600;">${wrapLeaf(label)}</span>
+        </section>`
+      return `<section style="margin:0 0 24px;background:radial-gradient(circle at center,${v.lightBg} 0%,#FFFFFF 100%);border:1px solid ${v.borderColor};border-radius:16px;padding:32px 20px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.03);">
+        <section style="display:flex;justify-content:center;gap:24px;margin-bottom:16px;">
+          ${btn(like, '点赞', false)}
+          ${btn(eye, '在看', false)}
+          ${btn(share, '转发', true)}
+        </section>
+        <p style="font-size:10px;color:${v.mutedText};letter-spacing:1px;margin:0;">${wrapLeaf('THANKS FOR READING')}</p>
+      </section>`
+    },
   }
 }
 
@@ -158,6 +219,8 @@ export function createTheme(config: {
   skeleton?: string[]
   recipe?: Record<string, string[]>
   mapping?: Record<string, string>
+  conclusionMarker?: string
+  codeStyle?: 'dark' | 'light'
 }): ThemeConfig {
   const baseComponents = createBaseComponents(config.designVars)
   return {
@@ -172,5 +235,7 @@ export function createTheme(config: {
     skeleton: config.skeleton || ['cover', 'introCard', 'toc', 'chapters', 'signature'],
     recipe: config.recipe || {},
     mapping: config.mapping || {},
+    conclusionMarker: config.conclusionMarker,
+    codeStyle: config.codeStyle,
   }
 }

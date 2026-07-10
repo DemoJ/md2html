@@ -85,39 +85,41 @@ export function generateHtml(doc: MarkdownDoc, options: GenerateOptions): string
     }
   }
 
-  // === 导读（精选 3 个核心看点） ===
+  // === 目录（toc-scroll：列出所有章节 + 固定「写在最后」卡） ===
   // 参考原 skill 骨架顺序：目录必须紧跟封面之下，在开头引言和前言正文之前
-  // 参考原 skill：导读是 AI 智能挑选的最重要章节，无 AI 增强时不显示
-  // （没有 AI 分析就无法判断哪些是“看点”，不应硬凑）
-  if (options.showToc !== false && enhance?.tocHighlights?.length && chapters.length > 0) {
-    const highlightIndices = enhance.tocHighlights
-      .filter((idx) => idx >= 0 && idx < chapters.length)
-      .slice(0, 3)
-    if (highlightIndices.length > 0) {
-      const tocItems: TocItem[] = highlightIndices.map((chIdx, i) => ({
-        num: formatChapterNumber(i, chapters.length, false),
-        title: chapters[chIdx].title,
-      }))
-      parts.push(comps.toc(tocItems))
+  // skill 要求：2+ 章节时生成，横向滚动列出【所有】章节（非「精选前 3」），
+  // 最后一个固定为「写在最后（PART {marker}）」卡；仍受当前网站 showToc 设置控制是否显示
+  // 仅当最后一章本身就是结语章时，才用「写在最后」卡代表它，避免与正文结语重复
+  if (options.showToc !== false && chapters.length >= 2) {
+    const tocItems: TocItem[] = chapters.map((ch) => ({ title: ch.title }))
+    if (tocItems.length > 0 && isConclusionChapter(chapters[chapters.length - 1].title)) {
+      tocItems.pop()
+    }
+    if (tocItems.length > 0) {
+      parts.push(comps.toc(tocItems, theme.conclusionMarker ?? '∞'))
     }
   }
 
-  // === 引言卡 ===
-  // 引言由文章开头的 blockquote 决定，有就显示，没有就没有
-  // 参考原 skill 骨架顺序：引言在目录之后、正文之前
-  if (openingQuoteText) {
-    const introData: IntroData = {
-      text: openingQuoteText,
-      author: enhance?.introCard?.author,
+    // === 引言卡 ===
+    // 引言由文章开头的 blockquote 决定，有就显示，没有就没有
+    // 参考原 skill 骨架顺序：引言在目录之后、正文之前
+    if (openingQuoteText) {
+      const introKeywords = enhance?.introCard?.keywords
+      const hasKeywords = !!introKeywords?.length
+      const introData: IntroData = {
+        text: openingQuoteText,
+        author: enhance?.introCard?.author,
+        // 无 AI 关键词时，把整句作为亮点高亮（贴近 skill oneliner-card）
+        highlightAll: !hasKeywords,
+      }
+      let introHtml = comps.introCard(introData)
+      // 引言关键词高亮（有 AI 关键词时优先精确高亮）
+      if (hasKeywords) {
+        const highlightCSS = `background:linear-gradient(transparent 60%,${theme.designVars.highlight} 60%);font-weight:600;`
+        introHtml = applyKeywordUnderline(introHtml, introKeywords!, highlightCSS)
+      }
+      parts.push(introHtml)
     }
-    let introHtml = comps.introCard(introData)
-    // 引言关键词高亮
-    if (enhance?.introCard?.keywords?.length) {
-      const highlightCSS = `background:linear-gradient(transparent 60%,${theme.designVars.highlight} 60%);font-weight:600;`
-      introHtml = applyKeywordUnderline(introHtml, enhance.introCard.keywords, highlightCSS)
-    }
-    parts.push(introHtml)
-  }
 
   // === 正文 ===
   let chapterIndex = -1
@@ -140,11 +142,12 @@ export function generateHtml(doc: MarkdownDoc, options: GenerateOptions): string
       chapterIndex++
       hasFirstChapter = true
       const title = inlineToPlainText(block.children)
-      const num = formatChapterNumber(
-        chapterIndex,
-        chapters.length,
-        isConclusionChapter(title)
-      )
+      const isConclusion = isConclusionChapter(title)
+      // 结语章编号：优先用主题库指定的变体（如摸鱼绿 '///'），否则沿用数字编号/∞
+      const num =
+        isConclusion && theme.conclusionMarker
+          ? theme.conclusionMarker
+          : formatChapterNumber(chapterIndex, chapters.length, isConclusion)
       const enLabel =
         enhance?.chapterLabels?.[chapterIndex] || generateEnLabel(title)
       parts.push(comps.chapterTitle({ num, enLabel, title }))
@@ -188,11 +191,15 @@ export function generateHtml(doc: MarkdownDoc, options: GenerateOptions): string
       continue
     }
 
-    // 代码块
+    // 代码块（按主题切换深色/浅色，参考 skill 1a/1b）
     if (block.type === 'code_block') {
       const lines = block.content.split('\n').filter((l) => l.length > 0 || true)
-      // 判断深色还是浅色（默认深色）
-      parts.push(comps.codeBlockDark(block.lang, lines))
+      const codeStyle = theme.codeStyle || 'dark'
+      parts.push(
+        codeStyle === 'light'
+          ? comps.codeBlockLight(block.lang, lines)
+          : comps.codeBlockDark(block.lang, lines)
+      )
       continue
     }
 
@@ -236,13 +243,16 @@ export function generateHtml(doc: MarkdownDoc, options: GenerateOptions): string
     }
   }
 
-  // === 签名区 ===
-  // 有作者署名时才生成签名区，否则跳过
+  // === 签名区 + 互动三连 ===
+  // 参考原 skill：签名/三连 是所有文章类型的固定结构（封面+目录+章节标题+签名/三连）
+  // 作者签名段：有署名才显示（默认占位 {{作者名}} 由用户替换）
+  // 互动三连按钮卡（footer-cta）：默认始终显示
   if (authorName) {
     const bio = authorBio || '热衷于分享 AI 观察与干货'
     const cta = '如果你觉得今天这篇有收获，欢迎点赞、在看、转发三连，我们下篇见'
     parts.push(comps.signature({ author: authorName, bio, cta }))
   }
+  parts.push(comps.footerCta())
 
   // === 组装 ===
   return comps.globalContainer(parts.join('\n'))

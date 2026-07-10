@@ -111,8 +111,8 @@ export function formatChapterNumber(index: number, total: number, isConclusion: 
   return String(index + 1).padStart(2, '0')
 }
 
-/** 判断标题是否是结语/总结类 */
-const CONCLUSION_KEYWORDS = ['总结', '结语', '结语', '收尾', '结束', '后记', '尾声', '写在最后', '结语']
+/** 判断标题是否是结语/总结类（仅匹配明确的结语标记，避免把含"总结"的普通章节误判） */
+const CONCLUSION_KEYWORDS = ['写在最后', '结语', '结束语', '终章', '尾声', '后记', '收尾']
 
 export function isConclusionChapter(title: string): boolean {
   return CONCLUSION_KEYWORDS.some((kw) => title.includes(kw))

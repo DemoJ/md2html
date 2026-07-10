@@ -37,6 +37,8 @@ export const moyuGreen = createTheme({
   description: '绿色杂志风，卡片丰富、信息密度高',
   suitableFor: '教程、测评、清单、工具盘点',
   designVars,
+  conclusionMarker: '///',
+  codeStyle: 'dark',
   components: {
     // 杂志快讯封面（无右图版）
     cover: (data) => {
@@ -63,33 +65,6 @@ export const moyuGreen = createTheme({
     <p style="font-size:12px;color:rgba(255,255,255,0.9);margin:0;font-weight:600;letter-spacing:0.5px;">${wrapLeaf(escapeHtml(data.bottomLeft))}</p>
     <section style="display:flex;gap:4px;">${data.tags.map((t) => `<span style="background:rgba(255,255,255,0.2);padding:1px 6px;border-radius:3px;font-size:8px;color:#fff;font-weight:600;">${wrapLeaf(escapeHtml(t))}</span>`).join('')}</section>
   </section>
-</section>`
-    },
-
-    // 引言卡
-    introCard: (data) => {
-      const v = designVars
-      const author = data.author
-        ? `<p style="text-align:right;font-size:13px;color:${v.mutedText};margin:12px 0 0;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(`—— ${data.author}`)))}</p>`
-        : ''
-      return `<section style="margin:0 0 28px;background:${v.lightBg};border-radius:14px;padding:24px 28px;border:1px solid ${v.lightBorderSoft};">
-  <p style="font-size:15px;color:${v.secondaryText};margin:0;line-height:1.9;letter-spacing:0.3px;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(data.text)))}</p>
-  ${author}
-</section>`
-    },
-
-    // 目录（精选 3 个）
-    toc: (items) => {
-      const v = designVars
-      const tocItems = items
-        .map(
-          (item) =>
-            `<section style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><span style="font-size:12px;font-weight:900;color:${v.primary};min-width:24px;">${wrapLeaf(escapeHtml(item.num))}</span><span style="font-size:13px;color:${v.secondaryText};line-height:1.6;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(item.title)))}</span></section>`
-        )
-        .join('')
-      return `<section style="margin:0 0 28px;background:#FAFAFA;border-radius:12px;padding:20px 24px;border:1px solid ${v.borderColor};">
-  <p style="font-size:12px;font-weight:700;color:${v.mutedText};letter-spacing:2px;margin:0 0 14px;">${wrapLeaf('本文看点')}</p>
-  ${tocItems}
 </section>`
     },
 

@@ -111,11 +111,11 @@ function close() {
               </button>
             </div>
 
-            <!-- 导读 -->
+            <!-- 目录 -->
             <div class="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3">
               <div>
-                <div class="text-sm font-medium text-gray-700">显示导读</div>
-                <div class="text-xs text-gray-400">精选 3 个核心看点，非完整章节列表</div>
+                <div class="text-sm font-medium text-gray-700">显示目录</div>
+                <div class="text-xs text-gray-400">列出全部章节，可横向滚动浏览</div>
               </div>
               <button
                 @click="settings.toggleToc()"

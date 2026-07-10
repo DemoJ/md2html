@@ -37,6 +37,7 @@ export const zenWhitespace = createTheme({
   description: '呼吸感最强，大留白 + 居中衬线引用，极简随笔',
   suitableFor: '禅意、极简生活、深度随笔、艺术留白',
   designVars,
+  codeStyle: 'light',
   components: {
     cover: (data) => {
       const v = designVars
@@ -48,30 +49,6 @@ export const zenWhitespace = createTheme({
   <section style="width:1px;height:32px;background:${v.lightBorder};margin:24px auto;"><span leaf=""><br></span></section>
   <p style="font-size:13px;color:${v.mutedText};margin:0;line-height:2.0;letter-spacing:0.5px;">${wrapLeaf(escapeHtml(data.subtitle))}</p>
   <p style="font-size:11px;color:${v.borderColor};margin:32px 0 0;letter-spacing:2px;">${wrapLeaf(escapeHtml(data.date))}<span style="margin:0 8px;color:${v.lightBorder};">${wrapLeaf('·')}</span>${wrapLeaf(escapeHtml(data.bottomLeft))}</p>
-</section>`
-    },
-
-    introCard: (data) => {
-      const v = designVars
-      const author = data.author
-        ? `<p style="text-align:center;font-size:12px;color:${v.mutedText};margin:20px 0 0;letter-spacing:2px;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(data.author)))}</p>`
-        : ''
-      return `<section style="margin:0 0 40px;padding:32px 24px;text-align:center;">
-  <p style="font-size:16px;color:${v.secondaryText};margin:0;line-height:2.2;letter-spacing:1px;font-weight:300;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(data.text)))}</p>
-  ${author}
-</section>`
-    },
-
-    toc: (items) => {
-      const v = designVars
-      const tocItems = items
-        .map(
-          (item) =>
-            `<section style="text-align:center;margin-bottom:20px;"><span style="font-size:11px;color:${v.lightBorder};letter-spacing:2px;margin:0 0 4px;">${wrapLeaf(escapeHtml(item.num))}</span><p style="font-size:14px;color:${v.secondaryText};line-height:1.6;font-weight:400;letter-spacing:0.5px;margin:0;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(item.title)))}</p></section>`
-        )
-        .join('')
-      return `<section style="margin:0 0 40px;padding:32px 24px;border-top:1px solid ${v.borderColor};border-bottom:1px solid ${v.borderColor};">
-  ${tocItems}
 </section>`
     },
 
