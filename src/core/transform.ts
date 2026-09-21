@@ -101,6 +101,21 @@ export function wrapLeaf(text: string): string {
 }
 
 /**
+ * 代码行渲染：转义 HTML 并保留行首缩进
+ *
+ * 代码行是放在 <p> 里的，而 HTML 在默认 white-space 下会折叠行首空白，
+ * 导致代码块缩进全部丢失（所有行顶格）。这里把行首空格换成 &nbsp;，
+ * 行内空格保持原样，这样长行仍能正常换行。
+ * 制表符按编辑器一致的口径展开为 2 个空格。
+ */
+export function escapeCodeLine(line: string): string {
+  const expanded = line.replace(/\t/g, '  ')
+  const indent = expanded.match(/^ +/)?.[0] ?? ''
+  const body = expanded.slice(indent.length)
+  return '&nbsp;'.repeat(indent.length) + escapeHtml(body)
+}
+
+/**
  * 章节编号格式化
  * 01, 02, 03... 末章用 ∞
  */

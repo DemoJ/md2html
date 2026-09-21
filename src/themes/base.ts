@@ -7,7 +7,7 @@
  */
 
 import type { DesignVars, ThemeComponents, ThemeConfig, TocItem } from '../core/types'
-import { toFullWidthPunctuation, wrapLeaf, escapeHtml } from '../core/transform'
+import { toFullWidthPunctuation, wrapLeaf, escapeHtml, escapeCodeLine } from '../core/transform'
 
 /**
  * 主题基类工厂
@@ -52,7 +52,7 @@ export function createBaseComponents(v: DesignVars): Partial<ThemeComponents> {
       const codeLines = lines
         .map(
           (line) =>
-            `<p style="margin:0;font-family:'SF Mono',Consolas,Monaco,monospace;font-size:13px;line-height:1.6;color:#E2E8F0;">${wrapLeaf(escapeHtml(line))}</p>`
+            `<p style="margin:0;white-space:pre-wrap;word-break:break-word;font-family:'SF Mono',Consolas,Monaco,monospace;font-size:13px;line-height:1.6;color:#E2E8F0;">${wrapLeaf(escapeCodeLine(line))}</p>`
         )
         .join('')
       return `<section style="margin:0 0 20px;border-radius:8px;overflow:hidden;background:#1E293B;box-shadow:0 4px 16px -8px rgba(15,23,42,0.4);"><section style="display:flex;align-items:center;padding:9px 14px;background:#0F172A;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#FF5F56;margin-right:7px;font-size:0;line-height:0;overflow:hidden;">.</span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#FFBD2E;margin-right:7px;font-size:0;line-height:0;overflow:hidden;">.</span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#27C93F;font-size:0;line-height:0;overflow:hidden;">.</span>${langLabel}</section><section style="padding:11px 14px;">${codeLines}</section></section>`
@@ -66,7 +66,7 @@ export function createBaseComponents(v: DesignVars): Partial<ThemeComponents> {
       const codeLines = lines
         .map(
           (line) =>
-            `<p style="margin:0;font-family:'SF Mono',Consolas,Monaco,monospace;font-size:13px;line-height:1.6;color:#24292F;">${wrapLeaf(escapeHtml(line))}</p>`
+            `<p style="margin:0;white-space:pre-wrap;word-break:break-word;font-family:'SF Mono',Consolas,Monaco,monospace;font-size:13px;line-height:1.6;color:#24292F;">${wrapLeaf(escapeCodeLine(line))}</p>`
         )
         .join('')
       return `<section style="margin:0 0 20px;border-radius:8px;overflow:hidden;background:#F6F8FA;border:1px solid ${v.borderColor};border-left:3px solid ${v.primary};"><section style="padding:7px 14px;border-bottom:1px solid ${v.borderColor};">${langLabel}</section><section style="padding:11px 14px;">${codeLines}</section></section>`

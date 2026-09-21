@@ -67,6 +67,7 @@ async function handleAIEnhance() {
     showSettings.value = true
     return
   }
+  // 失败原因由 store 的 enhanceError 承载，在下方横幅中展示
   await editor.enhanceWithAI()
 }
 </script>
@@ -131,6 +132,28 @@ async function handleAIEnhance() {
       >
         去配置
       </button>
+    </div>
+
+    <!-- AI 增强失败提示 -->
+    <div
+      v-if="editor.enhanceError"
+      class="flex items-center justify-between gap-3 bg-red-50 px-4 py-2 text-sm text-red-700"
+    >
+      <span class="truncate">✗ {{ editor.enhanceError }}</span>
+      <div class="flex shrink-0 items-center gap-2">
+        <button
+          @click="showSettings = true"
+          class="rounded-lg bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700"
+        >
+          检查配置
+        </button>
+        <button
+          @click="editor.dismissEnhanceError()"
+          class="rounded-lg px-2 py-1 text-xs text-red-400 hover:bg-red-100 hover:text-red-600"
+        >
+          关闭
+        </button>
+      </div>
     </div>
 
     <!-- 主体区域：编辑器 + 预览 -->

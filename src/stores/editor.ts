@@ -70,6 +70,9 @@ export const useEditorStore = defineStore('editor', () => {
   // AI 增强结果
   const enhanceResult = ref<AIEnhanceResult | null>(null)
 
+  // AI 增强失败原因（失败时展示给用户，避免「点了没反应」）
+  const enhanceError = ref('')
+
   // 是否正在 AI 增强中
   const loading = ref(false)
   const progressMessage = ref('')
@@ -126,6 +129,12 @@ export const useEditorStore = defineStore('editor', () => {
     if (enhanceResult.value) {
       enhanceResult.value = null
     }
+    enhanceError.value = ''
+  }
+
+  // 关闭 AI 增强错误提示
+  function dismissEnhanceError() {
+    enhanceError.value = ''
   }
 
   // AI 增强（需要 LLM 配置）
@@ -136,6 +145,7 @@ export const useEditorStore = defineStore('editor', () => {
       return { success: false, message: '请先配置 LLM API Key' }
     }
 
+    enhanceError.value = ''
     loading.value = true
     progressMessage.value = '正在解析内容...'
 
@@ -149,6 +159,10 @@ export const useEditorStore = defineStore('editor', () => {
       }
 
       const doc = parseMarkdown(markdown.value)
+      if (doc.blocks.length === 0) {
+        enhanceError.value = '编辑器里还没有内容，先写点什么再点 AI 增强'
+        return { success: false, message: enhanceError.value }
+      }
 
       progressMessage.value = '正在 AI 增强...'
       const enhance = await enhanceArticle(doc, settings.llmConfig, {
@@ -157,10 +171,11 @@ export const useEditorStore = defineStore('editor', () => {
         },
       })
 
-      // AI 返回 null = JSON 解析失败或无段落
+      // AI 返回 null = JSON 解析失败或无内容可分析
       if (!enhance) {
-        progressMessage.value = 'AI 增强未返回有效结果（可能是推理模型 token 不足，请查看控制台日志）'
-        return { success: false, message: 'AI 未返回有效结果，请检查控制台日志或更换模型' }
+        enhanceError.value =
+          'AI 未返回有效结果：可能是模型不支持 JSON 输出或 token 不足，请更换模型后重试（详见控制台日志）'
+        return { success: false, message: enhanceError.value }
       }
 
       // 如果 AI 推荐了主题，自动切换
@@ -188,6 +203,7 @@ export const useEditorStore = defineStore('editor', () => {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
       progressMessage.value = `AI 增强失败: ${message}`
+      enhanceError.value = `AI 增强失败：${message}`
       console.error(err)
       return { success: false, message }
     } finally {
@@ -240,6 +256,7 @@ export const useEditorStore = defineStore('editor', () => {
     generatedHtml,
     validationResult,
     enhanceResult,
+    enhanceError,
     loading,
     progressMessage,
     editorScrollRatio,
@@ -248,6 +265,7 @@ export const useEditorStore = defineStore('editor', () => {
     selectTheme,
     convertBasic,
     clearEnhance,
+    dismissEnhanceError,
     enhanceWithAI,
     copyToClipboard,
     exportHtml,

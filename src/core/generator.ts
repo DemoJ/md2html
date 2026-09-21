@@ -193,7 +193,8 @@ export function generateHtml(doc: MarkdownDoc, options: GenerateOptions): string
 
     // 代码块（按主题切换深色/浅色，参考 skill 1a/1b）
     if (block.type === 'code_block') {
-      const lines = block.content.split('\n').filter((l) => l.length > 0 || true)
+      // fence 的 content 末尾带一个换行，直接 split 会在代码块底部多出一个空行
+      const lines = block.content.replace(/\n$/, '').split('\n')
       const codeStyle = theme.codeStyle || 'dark'
       parts.push(
         codeStyle === 'light'

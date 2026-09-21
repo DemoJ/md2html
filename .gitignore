@@ -17,3 +17,4 @@ pnpm-debug.log*
 *.sln
 *.sw?
 .workbuddy
+.workbuddy-ai

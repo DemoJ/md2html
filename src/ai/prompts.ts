@@ -42,7 +42,8 @@ export function buildEnhanceUserPrompt(
   title: string,
   paragraphs: { index: number; text: string }[],
   chapters: { index: number; title: string }[],
-  openingQuote?: string
+  openingQuote?: string,
+  codeBlocks: string[] = []
 ): string {
   const articleText = paragraphs
     .map((p) => `[段落${p.index}] ${p.text}`)
@@ -57,13 +58,21 @@ export function buildEnhanceUserPrompt(
 > ${openingQuote}\n\n`
     : ''
 
+  // 纯代码/纯图片类文章没有正文段落，用代码块作为上下文，
+  // 否则 AI 完全无法判断文章类型、封面文案与推荐主题
+  const codeSection = codeBlocks.length
+    ? `\n代码块（仅供理解上下文，不要为代码标记关键词）：\n${codeBlocks
+        .map((code) => '```\n' + code + '\n```')
+        .join('\n')}\n`
+    : ''
+
   return `文章标题：${title}
 
 ${quoteSection}章节列表：
 ${chapterText || '（无章节）'}
-
+${codeSection}
 正文段落：
-${articleText}
+${articleText || '（无正文段落，请根据代码块与章节信息推断）'}
 
 请分析以上内容，返回排版增强 JSON。`
 }

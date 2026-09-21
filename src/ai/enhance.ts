@@ -37,13 +37,15 @@ export async function enhanceArticle(
     const paragraphs = extractParagraphs(doc)
     const chapters = extractChapters(doc)
     const openingQuote = extractOpeningQuote(doc)
+    const codeBlocks = extractCodeBlocks(doc)
 
-    if (paragraphs.length === 0) return null
+    // 段落、代码块、标题全都没有才算没内容可增强
+    if (paragraphs.length === 0 && codeBlocks.length === 0 && !doc.title) return null
 
     onProgress?.('正在分析文章内容...')
 
     // 单次调用获取所有增强信息
-    const userPrompt = buildEnhanceUserPrompt(doc.title, paragraphs, chapters, openingQuote)
+    const userPrompt = buildEnhanceUserPrompt(doc.title, paragraphs, chapters, openingQuote, codeBlocks)
     const response = await chat(config, ENHANCE_SYSTEM_PROMPT, userPrompt, {
       temperature: 0.7,
     })
@@ -115,10 +117,14 @@ export async function enhanceArticle(
     // 推荐主题
     onProgress?.('正在推荐主题...')
     try {
+      // 没有正文段落时（如纯代码文章）退化为用代码块作为判断依据
+      const excerptSource = paragraphs.length
+        ? paragraphs.map((p) => p.text).join('')
+        : codeBlocks.join('\n')
       const themeRec = await chat(
         config,
         ARTICLE_TYPE_PROMPT,
-        `文章标题：${doc.title}\n\n文章前500字：${paragraphs.map((p) => p.text).join('').slice(0, 500)}`,
+        `文章标题：${doc.title}\n\n文章前500字：${excerptSource.slice(0, 500)}`,
         { temperature: 0.1, maxTokens: 50 }
       )
       result.recommendedTheme = themeRec.trim()
@@ -149,6 +155,27 @@ function extractParagraphs(doc: MarkdownDoc): { index: number; text: string }[] 
         paraIdx++
       }
     }
+  }
+
+  return result
+}
+
+/**
+ * 从文档中提取代码块内容（作为 AI 理解文章的补充上下文）
+ * 单块截断，避免纯代码文章把 prompt 撑爆
+ */
+const MAX_CODE_BLOCK_CHARS = 600
+const MAX_CODE_BLOCKS = 3
+
+function extractCodeBlocks(doc: MarkdownDoc): string[] {
+  const result: string[] = []
+
+  for (const block of doc.blocks) {
+    if (block.type !== 'code_block') continue
+    const content = block.content.trim()
+    if (!content) continue
+    result.push(content.slice(0, MAX_CODE_BLOCK_CHARS))
+    if (result.length >= MAX_CODE_BLOCKS) break
   }
 
   return result
