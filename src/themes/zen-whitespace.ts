@@ -54,7 +54,7 @@ export const zenWhitespace = createTheme({
 
     chapterTitle: (data) => {
       const v = designVars
-      return `<section style="margin:56px 0 28px;text-align:center;">
+      return `<section style="margin:56px 20px 28px;text-align:center;">
   <p style="font-size:11px;color:${v.lightBorder};letter-spacing:4px;margin:0 0 12px;">${wrapLeaf(escapeHtml(data.num))}<span style="margin:0 8px;">${wrapLeaf('·')}</span>${wrapLeaf(escapeHtml(data.enLabel))}</p>
   <p style="font-size:20px;font-weight:400;color:${v.titleColor};margin:0;line-height:1.5;letter-spacing:1px;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(data.title)))}</p>
   <section style="width:20px;height:1px;background:${v.lightBorder};margin:20px auto 0;"><span leaf=""><br></span></section>
@@ -63,7 +63,8 @@ export const zenWhitespace = createTheme({
 
     signature: (data) => {
       const v = designVars
-      return `<section style="margin:56px 0 0;padding:40px 24px;text-align:center;border-top:1px solid ${v.borderColor};">
+      // 底部留 24px：下方紧接 footer-cta（互动三连），两块不能贴在一起
+      return `<section style="margin:56px 20px 24px;padding:40px 24px;text-align:center;border-top:1px solid ${v.borderColor};">
   <section style="width:1px;height:24px;background:${v.lightBorder};margin:0 auto 20px;"><span leaf=""><br></span></section>
   <p style="font-size:14px;color:${v.secondaryText};margin:0 0 8px;line-height:2.0;font-weight:300;letter-spacing:0.5px;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(`我是${data.author}，${data.bio}`)))}</p>
   <p style="font-size:12px;color:${v.mutedText};margin:0;line-height:1.9;letter-spacing:1px;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(data.cta)))}</p>

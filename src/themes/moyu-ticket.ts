@@ -41,6 +41,17 @@ export const moyuTicket = createTheme({
   components: {
     cover: (data) => {
       const v = designVars
+      const tags = data.tags || []
+      // 底部栏没有内容时整块删掉，不留空 section（上游 WeChat 兼容铁律）
+      const footLeft = data.bottomLeft
+        ? `<p style="font-size:11px;color:${v.mutedText};margin:0;font-weight:600;letter-spacing:0.5px;">${wrapLeaf(escapeHtml(data.bottomLeft))}</p>`
+        : ''
+      const footTags = tags.length
+        ? `<section style="display:flex;gap:4px;">${tags.map((t) => `<span style="background:${v.primary};color:#fff;padding:2px 8px;border-radius:3px;font-size:9px;font-weight:800;letter-spacing:0.5px;">${wrapLeaf(escapeHtml(t))}</span>`).join('')}</section>`
+        : ''
+      const foot = footLeft || footTags
+        ? `<section style="border-top:2px dashed ${v.borderColor};padding:10px 20px;display:flex;align-items:center;justify-content:space-between;background:${v.lightBg};">${footLeft}${footTags}</section>`
+        : ''
       return `<section style="margin:0 0 32px;background:#fff;border:2px solid ${v.titleColor};border-radius:12px;overflow:hidden;box-shadow:4px 4px 0 ${v.titleColor};">
   <section style="background:${v.titleColor};padding:6px 20px;display:flex;align-items:center;justify-content:space-between;">
     <span style="font-size:10px;font-weight:800;letter-spacing:2px;color:#fff;text-transform:uppercase;">${wrapLeaf(escapeHtml(data.topTag))}</span>
@@ -59,18 +70,15 @@ export const moyuTicket = createTheme({
       </section>
     </section>
   </section>
-  <section style="border-top:2px dashed ${v.borderColor};padding:10px 20px;display:flex;align-items:center;justify-content:space-between;background:${v.lightBg};">
-    <p style="font-size:11px;color:${v.mutedText};margin:0;font-weight:600;letter-spacing:0.5px;">${wrapLeaf(escapeHtml(data.bottomLeft))}</p>
-    <section style="display:flex;gap:4px;">${data.tags.map((t) => `<span style="background:${v.primary};color:#fff;padding:2px 8px;border-radius:3px;font-size:9px;font-weight:800;letter-spacing:0.5px;">${wrapLeaf(escapeHtml(t))}</span>`).join('')}</section>
-  </section>
+  ${foot}
 </section>`
     },
 
     chapterTitle: (data) => {
       const v = designVars
-      return `<section style="margin:32px 0 20px;padding:16px 18px;background:#fff;border:1.5px solid ${v.titleColor};border-radius:10px;box-shadow:3px 3px 0 ${v.titleColor};">
+      return `<section style="margin:32px 20px 20px;padding:16px 18px;background:#fff;border:1.5px solid ${v.titleColor};border-radius:10px;box-shadow:3px 3px 0 ${v.titleColor};">
   <section style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-    <span style="background:${v.primary};color:#fff;font-size:14px;font-weight:900;padding:3px 10px;border-radius:5px;">${wrapLeaf(escapeHtml(data.num))}</span>
+    <span style="background:${v.primary};color:#fff;font-size:14px;font-weight:900;padding:3px 10px;border-radius:5px;flex-shrink:0;">${wrapLeaf(escapeHtml(data.num))}</span>
     <span style="font-size:10px;font-weight:700;color:${v.mutedText};letter-spacing:2px;text-transform:uppercase;">${wrapLeaf(escapeHtml(data.enLabel))}</span>
   </section>
   <p style="font-size:17px;font-weight:800;color:${v.titleColor};margin:0;line-height:1.4;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(data.title)))}</p>
@@ -79,7 +87,8 @@ export const moyuTicket = createTheme({
 
     signature: (data) => {
       const v = designVars
-      return `<section style="margin:36px 0 0;padding:24px 20px;background:${v.lightBg};border:1.5px dashed ${v.primary};border-radius:10px;text-align:center;">
+      // 底部留 24px：下方紧接 footer-cta（互动三连），两块不能贴在一起
+      return `<section style="margin:36px 20px 24px;padding:24px 20px;background:${v.lightBg};border:1.5px dashed ${v.primary};border-radius:10px;text-align:center;">
   <p style="font-size:13px;color:${v.secondaryText};margin:0 0 6px;line-height:1.8;font-weight:500;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(`我是${data.author}，${data.bio}`)))}</p>
   <p style="font-size:12px;color:${v.mutedText};margin:0;line-height:1.7;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(data.cta)))}</p>
 </section>`

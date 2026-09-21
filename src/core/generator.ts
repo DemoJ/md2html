@@ -25,6 +25,7 @@ import {
   isConclusionChapter,
   generateEnLabel,
   applyKeywordUnderline,
+  stripEmptyElements,
   formatDateLabel,
 } from './transform'
 
@@ -232,7 +233,7 @@ export function generateHtml(doc: MarkdownDoc, options: GenerateOptions): string
             return ''
           })
           .join('')
-        parts.push(comps.listItem(itemHtml, block.ordered, idx))
+        parts.push(comps.listItem(itemHtml, block.ordered, idx, idx === block.items.length - 1))
       })
       continue
     }
@@ -256,7 +257,8 @@ export function generateHtml(doc: MarkdownDoc, options: GenerateOptions): string
   parts.push(comps.footerCta())
 
   // === 组装 ===
-  return comps.globalContainer(parts.join('\n'))
+  // 收尾清理：槽位为空留下的空壳元素整块删掉，不做无效占位
+  return stripEmptyElements(comps.globalContainer(parts.join('\n')))
 }
 
 /**
@@ -325,6 +327,8 @@ function generateSimpleCover(doc: MarkdownDoc, theme: ThemeConfig): string {
 
 /**
  * 渲染表格为简单 HTML
+ * 不设 font-family（官方规范第 3 节不建议设置任何字体族，正文交给平台默认字体栈）；
+ * 列宽不固定，靠 width:100% 自适应，避免官方规范 1.4 的溢出/跨屏不一致问题。
  */
 function renderTable(block: Extract<BlockNode, { type: 'table' }>, theme: ThemeConfig): string {
   const v = theme.designVars
@@ -347,5 +351,5 @@ function renderTable(block: Extract<BlockNode, { type: 'table' }>, theme: ThemeC
     )
     .join('')
 
-  return `<section style="margin:0 0 20px;overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-family:${v.fontFamily};"><thead><tr>${headerCells}</tr></thead><tbody>${bodyRows}</tbody></table></section>`
+  return `<section data-ignore-width style="margin:0 20px 20px;overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr>${headerCells}</tr></thead><tbody>${bodyRows}</tbody></table></section>`
 }

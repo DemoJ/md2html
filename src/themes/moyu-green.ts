@@ -43,10 +43,21 @@ export const moyuGreen = createTheme({
     // 杂志快讯封面（无右图版）
     cover: (data) => {
       const v = designVars
+      const tags = data.tags || []
+      // 底部栏没有内容时整块删掉，不留空 section（上游 WeChat 兼容铁律）
+      const footLeft = data.bottomLeft
+        ? `<p style="font-size:12px;color:rgba(255,255,255,0.9);margin:0;font-weight:600;letter-spacing:0.5px;">${wrapLeaf(escapeHtml(data.bottomLeft))}</p>`
+        : ''
+      const footTags = tags.length
+        ? `<section style="display:flex;gap:4px;">${tags.map((t) => `<span style="background:rgba(255,255,255,0.2);padding:1px 6px;border-radius:3px;font-size:8px;color:#fff;font-weight:600;">${wrapLeaf(escapeHtml(t))}</span>`).join('')}</section>`
+        : ''
+      const foot = footLeft || footTags
+        ? `<section style="background:linear-gradient(135deg,${v.primary},${v.secondary});padding:12px 28px;display:flex;align-items:center;justify-content:space-between;">${footLeft}${footTags}</section>`
+        : ''
       return `<section style="margin:0 0 32px;background:#fff;border:1.5px solid rgba(5,150,105,0.15);border-radius:20px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.06);width:100%;">
   <section style="padding:32px 28px 28px;">
     <section style="display:flex;align-items:center;gap:8px;margin-bottom:28px;">
-      <span style="width:6px;height:6px;background:${v.primary};border-radius:50%;"><span leaf=""><br></span></span>
+      <span style="width:6px;height:6px;background:${v.primary};border-radius:50%;flex-shrink:0;"><span leaf=""><br></span></span>
       <span style="font-size:11px;font-weight:700;letter-spacing:3px;color:${v.primary};">${wrapLeaf(escapeHtml(data.topTag))}</span>
       <section style="flex:1;height:1px;overflow:hidden;background:linear-gradient(to right,rgba(5,150,105,0.12),transparent);"><span leaf=""><br></span></section>
       <span style="font-size:10px;color:#D1D5DB;font-weight:600;">${wrapLeaf(escapeHtml(data.date))}</span>
@@ -61,19 +72,16 @@ export const moyuGreen = createTheme({
       </section>
     </section>
   </section>
-  <section style="background:linear-gradient(135deg,${v.primary},${v.secondary});padding:12px 28px;display:flex;align-items:center;justify-content:space-between;">
-    <p style="font-size:12px;color:rgba(255,255,255,0.9);margin:0;font-weight:600;letter-spacing:0.5px;">${wrapLeaf(escapeHtml(data.bottomLeft))}</p>
-    <section style="display:flex;gap:4px;">${data.tags.map((t) => `<span style="background:rgba(255,255,255,0.2);padding:1px 6px;border-radius:3px;font-size:8px;color:#fff;font-weight:600;">${wrapLeaf(escapeHtml(t))}</span>`).join('')}</section>
-  </section>
+  ${foot}
 </section>`
     },
 
     // 章节标题
     chapterTitle: (data) => {
       const v = designVars
-      return `<section style="margin:36px 0 20px;">
+      return `<section style="margin:36px 20px 20px;">
   <section style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;">
-    <span style="font-size:28px;font-weight:900;color:${v.primary};line-height:1;letter-spacing:-1px;">${wrapLeaf(escapeHtml(data.num))}</span>
+    <span style="font-size:28px;font-weight:900;color:${v.primary};line-height:1;letter-spacing:-1px;flex-shrink:0;">${wrapLeaf(escapeHtml(data.num))}</span>
     <span style="font-size:11px;font-weight:700;color:${v.mutedText};letter-spacing:2px;text-transform:uppercase;">${wrapLeaf(escapeHtml(data.enLabel))}</span>
   </section>
   <p style="font-size:18px;font-weight:800;color:${v.titleColor};margin:0;line-height:1.4;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(data.title)))}</p>
@@ -84,7 +92,8 @@ export const moyuGreen = createTheme({
     // 作者签名区
     signature: (data) => {
       const v = designVars
-      return `<section style="margin:40px 0 0;padding:28px 24px;background:${v.lightBg};border-radius:14px;text-align:center;">
+      // 底部留 24px：下方紧接 footer-cta（互动三连），两块不能贴在一起
+      return `<section style="margin:40px 20px 24px;padding:28px 24px;background:${v.lightBg};border-radius:14px;text-align:center;">
   <section style="width:40px;height:3px;background:linear-gradient(to right,${v.primary},${v.secondary});border-radius:2px;margin:0 auto 16px;"><span leaf=""><br></span></section>
   <p style="font-size:14px;color:${v.secondaryText};margin:0 0 8px;line-height:1.8;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(`我是${data.author}，${data.bio}`)))}</p>
   <p style="font-size:13px;color:${v.mutedText};margin:0;line-height:1.8;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(data.cta)))}</p>

@@ -10,6 +10,13 @@ import type { DesignVars, ThemeComponents, ThemeConfig, TocItem } from '../core/
 import { toFullWidthPunctuation, wrapLeaf, escapeHtml, escapeCodeLine } from '../core/transform'
 
 /**
+ * 内容区左右留白。
+ * 参考上游：全局容器只负责 `max-width:677px;margin:0 auto`，不设 padding；
+ * 每个内容模块自带左右 20px 边距，封面/横幅这类全宽元素则铺满。
+ */
+const SIDE = '20px'
+
+/**
  * 主题基类工厂
  * 根据设计变量生成通用组件（代码块、图片、行内元素等），
  * 各主题可在此基础上覆盖特定组件（封面、引言卡、章节标题等）
@@ -20,9 +27,9 @@ export function createBaseComponents(v: DesignVars): Partial<ThemeComponents> {
     globalContainer: (children: string) =>
       `<section style="max-width:677px;margin:0 auto;background:#ffffff;font-family:${v.fontFamily};color:${v.bodyColor};line-height:1.75;letter-spacing:0.5px;overflow-x:hidden;">${children}</section>`,
 
-    // 正文段落
+    // 正文段落（两端对齐，参考上游 text-align:justify）
     bodyParagraph: (html: string) =>
-      `<p style="margin:0 0 18px;font-size:${v.bodyFontSize};line-height:${v.bodyLineHeight};color:${v.bodyColor};letter-spacing:0.5px;">${html}</p>`,
+      `<p style="margin:0 ${SIDE} 18px;font-size:${v.bodyFontSize};line-height:${v.bodyLineHeight};color:${v.bodyColor};letter-spacing:0.5px;text-align:justify;">${html}</p>`,
 
     // 主色加粗
     boldPrimary: (html: string) =>
@@ -42,7 +49,7 @@ export function createBaseComponents(v: DesignVars): Partial<ThemeComponents> {
 
     // 引用块
     quoteBlock: (html: string) =>
-      `<section style="margin:0 0 20px;background:${v.lightBg};border-radius:0 10px 10px 0;border-left:4px solid ${v.primary};padding:16px 20px;"><p style="font-size:${v.bodyFontSize};color:${v.secondaryText};margin:0;line-height:1.8;">${html}</p></section>`,
+      `<section style="margin:0 ${SIDE} 20px;background:${v.lightBg};border-radius:0 10px 10px 0;border-left:4px solid ${v.primary};padding:16px 20px;"><p style="font-size:${v.bodyFontSize};color:${v.secondaryText};margin:0;line-height:1.8;text-align:justify;">${html}</p></section>`,
 
     // 深色代码块
     codeBlockDark: (lang: string, lines: string[]) => {
@@ -52,10 +59,10 @@ export function createBaseComponents(v: DesignVars): Partial<ThemeComponents> {
       const codeLines = lines
         .map(
           (line) =>
-            `<p style="margin:0;white-space:pre-wrap;word-break:break-word;font-family:'SF Mono',Consolas,Monaco,monospace;font-size:13px;line-height:1.6;color:#E2E8F0;">${wrapLeaf(escapeCodeLine(line))}</p>`
+            `<p style="margin:0;word-wrap:break-word;font-family:'SF Mono',Consolas,Monaco,monospace;font-size:13px;line-height:1.6;color:#E2E8F0;">${wrapLeaf(escapeCodeLine(line))}</p>`
         )
         .join('')
-      return `<section style="margin:0 0 20px;border-radius:8px;overflow:hidden;background:#1E293B;box-shadow:0 4px 16px -8px rgba(15,23,42,0.4);"><section style="display:flex;align-items:center;padding:9px 14px;background:#0F172A;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#FF5F56;margin-right:7px;font-size:0;line-height:0;overflow:hidden;">.</span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#FFBD2E;margin-right:7px;font-size:0;line-height:0;overflow:hidden;">.</span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#27C93F;font-size:0;line-height:0;overflow:hidden;">.</span>${langLabel}</section><section style="padding:11px 14px;">${codeLines}</section></section>`
+      return `<section style="margin:0 ${SIDE} 20px;border-radius:8px;overflow:hidden;background:#1E293B;box-shadow:0 4px 16px -8px rgba(15,23,42,0.4);"><section style="display:flex;align-items:center;padding:9px 14px;background:#0F172A;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#FF5F56;margin-right:7px;font-size:0;line-height:0;overflow:hidden;">.</span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#FFBD2E;margin-right:7px;font-size:0;line-height:0;overflow:hidden;">.</span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#27C93F;font-size:0;line-height:0;overflow:hidden;">.</span>${langLabel}</section><section style="padding:11px 14px;">${codeLines}</section></section>`
     },
 
     // 浅色代码块
@@ -66,13 +73,13 @@ export function createBaseComponents(v: DesignVars): Partial<ThemeComponents> {
       const codeLines = lines
         .map(
           (line) =>
-            `<p style="margin:0;white-space:pre-wrap;word-break:break-word;font-family:'SF Mono',Consolas,Monaco,monospace;font-size:13px;line-height:1.6;color:#24292F;">${wrapLeaf(escapeCodeLine(line))}</p>`
+            `<p style="margin:0;word-wrap:break-word;font-family:'SF Mono',Consolas,Monaco,monospace;font-size:13px;line-height:1.6;color:#24292F;">${wrapLeaf(escapeCodeLine(line))}</p>`
         )
         .join('')
-      return `<section style="margin:0 0 20px;border-radius:8px;overflow:hidden;background:#F6F8FA;border:1px solid ${v.borderColor};border-left:3px solid ${v.primary};"><section style="padding:7px 14px;border-bottom:1px solid ${v.borderColor};">${langLabel}</section><section style="padding:11px 14px;">${codeLines}</section></section>`
+      return `<section style="margin:0 ${SIDE} 20px;border-radius:8px;overflow:hidden;background:#F6F8FA;border:1px solid ${v.borderColor};border-left:3px solid ${v.primary};"><section style="padding:7px 14px;border-bottom:1px solid ${v.borderColor};">${langLabel}</section><section style="padding:11px 14px;">${codeLines}</section></section>`
     },
 
-    // 行内代码
+    // 行内代码（等宽字体属于代码可读性必需，与上游一致保留）
     inlineCode: (code: string) =>
       `<span style="background:${v.lightGrayBg};color:${v.primary};padding:1px 6px;border-radius:4px;font-family:'SF Mono',Consolas,Monaco,monospace;font-size:13px;">${wrapLeaf(code)}</span>`,
 
@@ -80,9 +87,9 @@ export function createBaseComponents(v: DesignVars): Partial<ThemeComponents> {
     image: (src: string, alt: string) => {
       const img = `<span leaf=""><img src="${src}" style="max-width:100%;height:auto;display:block;margin:0 auto;"></span>`
       const caption = alt
-        ? `<p style="font-size:12px;color:${v.mutedText};text-align:center;margin:0 0 24px;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(`— ${alt}`)))}</p>`
+        ? `<p style="font-size:12px;color:${v.mutedText};text-align:center;margin:0 ${SIDE} 24px;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(`— ${alt}`)))}</p>`
         : ''
-      return `<section style="background:#FFF;border-radius:12px;padding:6px;border:1px solid ${v.borderColor};box-shadow:0 4px 12px -2px rgba(0,0,0,0.08);margin-bottom:8px;"><section style="margin:0;border-radius:8px;overflow:hidden;">${img}</section></section>${caption}`
+      return `<section style="margin:0 ${SIDE} 8px;background:#FFF;border-radius:12px;padding:6px;border:1px solid ${v.borderColor};box-shadow:0 4px 12px -2px rgba(0,0,0,0.08);"><section style="margin:0;border-radius:8px;overflow:hidden;">${img}</section></section>${caption}`
     },
 
     // GIF 动图
@@ -92,46 +99,47 @@ export function createBaseComponents(v: DesignVars): Partial<ThemeComponents> {
       const caption = alt
         ? `<span style="font-size:12px;color:${v.mutedText};">${wrapLeaf(escapeHtml(alt))}</span>`
         : ''
-      return `<section style="background:#FFF;border-radius:12px;padding:6px;border:1px solid ${v.borderColor};box-shadow:0 4px 12px -2px rgba(0,0,0,0.08);margin-bottom:8px;"><section style="margin:0;border-radius:8px;overflow:hidden;">${img}</section></section><p style="text-align:center;margin:0 0 24px;">${badge}${caption}</p>`
+      return `<section style="margin:0 ${SIDE} 8px;background:#FFF;border-radius:12px;padding:6px;border:1px solid ${v.borderColor};box-shadow:0 4px 12px -2px rgba(0,0,0,0.08);"><section style="margin:0;border-radius:8px;overflow:hidden;">${img}</section></section><p style="text-align:center;margin:0 ${SIDE} 24px;">${badge}${caption}</p>`
     },
 
     // 待补素材占位
     placeholder: (text: string) =>
-      `<section style="margin:0 0 24px;padding:30px 20px;border:1.5px dashed #DAD7D2;border-radius:14px;background:#FAFAF8;text-align:center;"><p style="margin:0 0 10px;font-size:26px;line-height:1;">${wrapLeaf('🎬')}</p><p style="margin:0;font-size:14px;font-weight:700;color:${v.mutedText};letter-spacing:1px;">${wrapLeaf('待补素材')}</p><p style="margin:8px 0 0;font-size:13px;color:#B8B5B0;line-height:1.7;">${wrapLeaf(escapeHtml(text))}</p></section>`,
+      `<section style="margin:0 ${SIDE} 24px;padding:30px 20px;border:1.5px dashed #DAD7D2;border-radius:14px;background:#FAFAF8;text-align:center;"><p style="margin:0 0 10px;font-size:26px;line-height:1;">${wrapLeaf('🎬')}</p><p style="margin:0;font-size:14px;font-weight:700;color:${v.mutedText};letter-spacing:1px;">${wrapLeaf('待补素材')}</p><p style="margin:8px 0 0;font-size:13px;color:#B8B5B0;line-height:1.7;">${wrapLeaf(escapeHtml(text))}</p></section>`,
 
     // 左竖条小标题
     leftBarTitle: (text: string) =>
-      `<p style="margin:28px 0 14px;font-size:16px;font-weight:800;color:${v.titleColor};line-height:1.5;border-left:4px solid ${v.primary};padding-left:12px;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(text)))}</p>`,
+      `<p style="margin:28px ${SIDE} 14px;font-size:16px;font-weight:800;color:${v.titleColor};line-height:1.5;border-left:4px solid ${v.primary};padding-left:12px;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(text)))}</p>`,
 
     // 药丸标签小标题
     pillTitle: (text: string) =>
-      `<p style="margin:28px 0 14px;"><span style="display:inline-block;background:${v.primary};color:#FFFFFF;font-size:14px;font-weight:700;padding:5px 16px;border-radius:6px;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(text)))}</span></p>`,
+      `<p style="margin:28px ${SIDE} 14px;"><span style="display:inline-block;background:${v.primary};color:#FFFFFF;font-size:14px;font-weight:700;padding:5px 16px;border-radius:6px;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(text)))}</span></p>`,
 
     // 序号药丸 + 标题
     numberedTitle: (num: string, text: string) =>
-      `<p style="margin:24px 0 12px;font-size:15px;font-weight:800;color:${v.titleColor};line-height:1.6;"><span style="display:inline-block;background:${v.lightBg};color:${v.primary};border-radius:5px;padding:1px 9px;margin-right:8px;font-weight:900;">${wrapLeaf(num)}</span>${wrapLeaf(escapeHtml(toFullWidthPunctuation(text)))}</p>`,
+      `<p style="margin:24px ${SIDE} 12px;font-size:15px;font-weight:800;color:${v.titleColor};line-height:1.6;"><span style="display:inline-block;background:${v.lightBg};color:${v.primary};border-radius:5px;padding:1px 9px;margin-right:8px;font-weight:900;">${wrapLeaf(num)}</span>${wrapLeaf(escapeHtml(toFullWidthPunctuation(text)))}</p>`,
 
     // 金句引用（左竖条版）
     goldQuote: (text: string) =>
-      `<section style="margin:0 0 24px;background:${v.lightBg};border-radius:0 10px 10px 0;border-left:4px solid ${v.primary};padding:16px 20px;"><p style="font-size:16px;font-weight:800;color:${v.primary};margin:0;line-height:1.8;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(text)))}</p></section>`,
+      `<section style="margin:0 ${SIDE} 24px;background:${v.lightBg};border-radius:0 10px 10px 0;border-left:4px solid ${v.primary};padding:16px 20px;"><p style="font-size:16px;font-weight:800;color:${v.primary};margin:0;line-height:1.8;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(text)))}</p></section>`,
 
     // 提示/旁注块
     tipBlock: (label: string, text: string) =>
-      `<section style="margin:0 0 24px;background:${v.lightBg};border-radius:0 8px 8px 0;border-left:4px solid ${v.primary};padding:14px 18px;"><p style="margin:0 0 6px;"><span style="display:inline-block;background:${v.primary};color:#FFFFFF;font-size:11px;font-weight:700;padding:2px 10px;border-radius:4px;letter-spacing:1px;">${wrapLeaf(escapeHtml(label))}</span></p><p style="font-size:14px;color:${v.secondaryText};margin:0;line-height:1.8;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(text)))}</p></section>`,
+      `<section style="margin:0 ${SIDE} 24px;background:${v.lightBg};border-radius:0 8px 8px 0;border-left:4px solid ${v.primary};padding:14px 18px;"><p style="margin:0 0 6px;"><span style="display:inline-block;background:${v.primary};color:#FFFFFF;font-size:11px;font-weight:700;padding:2px 10px;border-radius:4px;letter-spacing:1px;">${wrapLeaf(escapeHtml(label))}</span></p><p style="font-size:14px;color:${v.secondaryText};margin:0;line-height:1.8;text-align:justify;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(text)))}</p></section>`,
 
-    // 分割线
+    // 分割线（装饰性空元素，内部必须有 <span leaf=""><br></span> 占位，否则微信会剥掉样式）
     hr: () =>
-      `<section style="margin:28px 0;border:none;border-top:1px solid ${v.borderColor};"><span leaf=""><br></span></section>`,
+      `<section style="margin:28px ${SIDE};border:none;border-top:1px solid ${v.borderColor};"><span leaf=""><br></span></section>`,
 
-    // 列表项
-    listItem: (html: string, ordered: boolean, index: number) => {
+    // 列表项（项间紧凑 8px；末项回归段落间距，避免与后续内容黏在一起）
+    listItem: (html: string, ordered: boolean, index: number, isLast = false) => {
       const marker = ordered
-        ? `<span style="color:${v.primary};font-weight:700;margin-right:6px;">${wrapLeaf(`${index + 1}.`)}</span>`
-        : `<span style="color:${v.primary};margin-right:8px;">${wrapLeaf('•')}</span>`
-      return `<p style="margin:0 0 8px;font-size:${v.bodyFontSize};line-height:${v.bodyLineHeight};color:${v.bodyColor};display:flex;align-items:flex-start;">${marker}<span style="flex:1;">${html}</span></p>`
+        ? `<span style="color:${v.primary};font-weight:700;margin-right:6px;flex-shrink:0;">${wrapLeaf(`${index + 1}.`)}</span>`
+        : `<span style="color:${v.primary};margin-right:8px;flex-shrink:0;">${wrapLeaf('•')}</span>`
+      return `<p style="margin:0 ${SIDE} ${isLast ? 18 : 8}px;font-size:${v.bodyFontSize};line-height:${v.bodyLineHeight};color:${v.bodyColor};display:flex;align-items:flex-start;text-align:justify;">${marker}<span style="flex:1;">${html}</span></p>`
     },
 
     // 目录（skill toc-scroll：横向滚动，列出所有章节，最后固定「写在最后」卡）
+    // 横向滚动容器有意超出视口，按官方规范 1.4.4 加 data-ignore-width 豁免 width 检测
     toc: (items: TocItem[], conclusionMarker: string) => {
       const total = items.length + 1
       const card = (partLabel: string, title: string, highlighted: boolean) => {
@@ -148,18 +156,18 @@ export function createBaseComponents(v: DesignVars): Partial<ThemeComponents> {
         .map((item, i) => card(String(i + 1).padStart(2, '0'), item.title, i === 0))
         .join('')
       const last = card(conclusionMarker, '写在最后', false)
-      return `<section style="margin:0 0 32px;">
+      return `<section style="margin:0 ${SIDE} 32px;">
   <section style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
     <p style="font-size:10px;color:${v.mutedText};margin:0;text-transform:uppercase;letter-spacing:2px;font-weight:600;"><span leaf="">📦 ${total} Parts + Conclusion</span></p>
     <p style="font-size:10px;color:${v.mutedText};margin:0;"><span leaf="">👉 滑动</span></p>
   </section>
-  <section style="overflow-x:scroll;-webkit-overflow-scrolling:touch;white-space:nowrap;padding-bottom:8px;">
+  <section data-ignore-width style="overflow-x:scroll;-webkit-overflow-scrolling:touch;white-space:nowrap;padding-bottom:8px;">
     ${cards}${last}
   </section>
 </section>`
     },
 
-    // 引言卡（skill oneliner-card：虚线框 + 居中 + 关键句黄色下划线高亮）
+    // 引言卡（skill oneliner-card：虚线框 + 居中 + 关键句高亮）
     introCard: (data) => {
       const inner = data.highlightAll
         ? `<span style="font-size:15px;color:${v.secondaryText};font-weight:bold;border-bottom:3px solid ${v.highlight};padding-bottom:2px;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(data.text)))}</span>`
@@ -167,7 +175,7 @@ export function createBaseComponents(v: DesignVars): Partial<ThemeComponents> {
       const author = data.author
         ? `<p style="text-align:right;font-size:13px;color:${v.mutedText};margin:12px 0 0;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(`—— ${data.author}`)))}</p>`
         : ''
-      return `<section style="margin:0 0 28px;background:#FFF;border:1px dashed ${v.lightBorderSoft};border-radius:8px;padding:14px 16px;text-align:center;"><p style="margin:0;line-height:1.6;">${inner}</p>${author}</section>`
+      return `<section style="margin:0 ${SIDE} 28px;background:#FFF;border:1px dashed ${v.lightBorderSoft};border-radius:8px;padding:14px 16px;text-align:center;"><p style="margin:0;line-height:1.6;">${inner}</p>${author}</section>`
     },
 
     // 互动三连按钮卡（skill footer-cta：点赞/在看/转发 + THANKS FOR READING，主题色）
@@ -179,10 +187,10 @@ export function createBaseComponents(v: DesignVars): Partial<ThemeComponents> {
       const share = '<path d="M4 18v-4a8 8 0 0 1 8-8h8"></path><polyline points="16 2 20 6 16 10"></polyline>'
       const btn = (svgPath: string, label: string, accent: boolean) =>
         `<section style="text-align:center;color:${accent ? v.primary : v.secondaryText};">
-          <section style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;background:${accent ? v.lightBg : '#fff'};border-radius:12px;box-shadow:0 2px 4px rgba(0,0,0,0.05);border:1px solid ${accent ? v.lightBorder : v.lightGrayBg};">${icon(svgPath)}</section>
+          <section style="width:40px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;background:${accent ? v.lightBg : '#fff'};border-radius:12px;box-shadow:0 2px 4px rgba(0,0,0,0.05);border:1px solid ${accent ? v.lightBorder : v.lightGrayBg};">${icon(svgPath)}</section>
           <span style="font-size:10px;font-weight:600;">${wrapLeaf(label)}</span>
         </section>`
-      return `<section style="margin:0 0 24px;background:radial-gradient(circle at center,${v.lightBg} 0%,#FFFFFF 100%);border:1px solid ${v.borderColor};border-radius:16px;padding:32px 20px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.03);">
+      return `<section style="margin:0 ${SIDE} 24px;background:radial-gradient(circle at center,${v.lightBg} 0%,#FFFFFF 100%);border:1px solid ${v.borderColor};border-radius:16px;padding:32px 20px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.03);">
         <section style="display:flex;justify-content:center;gap:24px;margin-bottom:16px;">
           ${btn(like, '点赞', false)}
           ${btn(eye, '在看', false)}

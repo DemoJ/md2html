@@ -20,6 +20,60 @@ import { themes, getTheme, defaultTheme } from '../themes'
 const MD_STORAGE_KEY = 'md2html-markdown'
 const THEME_STORAGE_KEY = 'md2html-theme'
 
+/** ClipboardItem 构造器（部分环境的 TS lib 里没有，故做一次运行时探测） */
+function getClipboardItemCtor():
+  | (new (items: Record<string, Blob>) => ClipboardItem)
+  | undefined {
+  return (window as unknown as {
+    ClipboardItem?: new (items: Record<string, Blob>) => ClipboardItem
+  }).ClipboardItem
+}
+
+/** 从生成的 HTML 提取纯文本，作为剪贴板 text/plain 兜底 */
+function htmlToPlainText(html: string): string {
+  try {
+    const el = document.createElement('div')
+    el.innerHTML = html
+    return (el.textContent || '').replace(/\n{3,}/g, '\n\n').trim()
+  } catch {
+    return ''
+  }
+}
+
+/**
+ * 降级复制：把正文放进一个空白 iframe 再走 execCommand。
+ * iframe 里没有本站的 CSS（Tailwind），序列化出来的 HTML 是干净的，
+ * 不会像直接插进 body 那样被注入一堆 --tw-* 变量。
+ */
+function legacyCopyViaIframe(html: string): Promise<boolean> {
+  return new Promise<boolean>((resolve) => {
+    const iframe = document.createElement('iframe')
+    iframe.setAttribute('aria-hidden', 'true')
+    iframe.style.cssText =
+      'position:fixed;left:-9999px;top:0;width:677px;height:600px;border:0;opacity:0;'
+    iframe.srcdoc = `<!DOCTYPE html><meta charset="utf-8"><body>${html}</body>`
+    iframe.onload = () => {
+      try {
+        const doc = iframe.contentDocument
+        const win = iframe.contentWindow
+        if (!doc || !win) return resolve(false)
+        const range = doc.createRange()
+        range.selectNodeContents(doc.body)
+        const sel = win.getSelection()
+        sel?.removeAllRanges()
+        sel?.addRange(range)
+        resolve(doc.execCommand('copy'))
+      } catch (err) {
+        console.error('iframe 复制失败:', err)
+        resolve(false)
+      } finally {
+        iframe.remove()
+      }
+    }
+    document.body.appendChild(iframe)
+  })
+}
+
 export const useEditorStore = defineStore('editor', () => {
   // Markdown 内容
   const markdown = ref<string>(
@@ -212,35 +266,35 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   // 复制到剪贴板
+  //
+  // 关键：必须绕开 execCommand('copy')。它走的是「选区序列化」，Chromium 会把页面上
+  // 由 CSS 类 / 全局 `*` 选择器带来的计算样式（本项目是 Tailwind 的一堆 `--tw-*`
+  // 变量）连同容器的 position:fixed 一起内联进剪贴板——实测 15KB 的正文被撑成 254KB。
+  // 公众号编辑器收到这种内容会直接降级成纯文本，样式全部丢失。
+  //
+  // 所以这里直接把「生成好的 HTML 字符串」写进剪贴板，不经 DOM 序列化。
   async function copyToClipboard(): Promise<boolean> {
-    if (!generatedHtml.value) return false
+    const html = generatedHtml.value
+    if (!html) return false
 
+    // 主路径：Clipboard API 直接写入（localhost / https 下可用）
+    // 注意：调用前不能再 await 其它东西，否则会丢失用户手势。
     try {
-      // 创建一个临时容器，渲染 HTML，然后复制富文本
-      const tempDiv = document.createElement('div')
-      tempDiv.innerHTML = generatedHtml.value
-      tempDiv.style.position = 'fixed'
-      tempDiv.style.left = '-9999px'
-      tempDiv.style.top = '0'
-      tempDiv.style.width = '677px'
-      document.body.appendChild(tempDiv)
-
-      // 选中并复制
-      const range = document.createRange()
-      range.selectNodeContents(tempDiv)
-      const selection = window.getSelection()
-      selection?.removeAllRanges()
-      selection?.addRange(range)
-
-      const success = document.execCommand('copy')
-      selection?.removeAllRanges()
-      document.body.removeChild(tempDiv)
-
-      return success
+      const ClipboardItemCtor = getClipboardItemCtor()
+      if (navigator.clipboard && ClipboardItemCtor) {
+        await navigator.clipboard.write([
+          new ClipboardItemCtor({
+            'text/html': new Blob([html], { type: 'text/html' }),
+            'text/plain': new Blob([htmlToPlainText(html)], { type: 'text/plain' }),
+          }),
+        ])
+        return true
+      }
     } catch (err) {
-      console.error('复制失败:', err)
-      return false
+      console.warn('Clipboard API 写入失败，降级为 iframe 复制:', err)
     }
+
+    return legacyCopyViaIframe(html)
   }
 
   // 导出 HTML 文件

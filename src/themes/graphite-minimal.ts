@@ -57,9 +57,9 @@ export const graphiteMinimal = createTheme({
 
     chapterTitle: (data) => {
       const v = designVars
-      return `<section style="margin:48px 0 24px;">
+      return `<section style="margin:48px 20px 24px;">
   <section style="display:flex;align-items:baseline;gap:14px;margin-bottom:4px;">
-    <span style="font-size:13px;font-weight:600;color:${v.mutedText};letter-spacing:2px;">${wrapLeaf(escapeHtml(data.num))}</span>
+    <span style="font-size:13px;font-weight:600;color:${v.mutedText};letter-spacing:2px;flex-shrink:0;">${wrapLeaf(escapeHtml(data.num))}</span>
     <span style="font-size:10px;color:${v.borderColor};letter-spacing:2px;text-transform:uppercase;">${wrapLeaf(escapeHtml(data.enLabel))}</span>
   </section>
   <p style="font-size:22px;font-weight:700;color:${v.titleColor};margin:0;line-height:1.3;letter-spacing:-0.3px;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(data.title)))}</p>
@@ -69,7 +69,8 @@ export const graphiteMinimal = createTheme({
 
     signature: (data) => {
       const v = designVars
-      return `<section style="margin:48px 0 0;padding:32px 0;border-top:1px solid ${v.borderColor};text-align:center;">
+      // 底部留 24px：下方紧接 footer-cta（互动三连），两块不能贴在一起
+      return `<section style="margin:48px 20px 24px;padding:32px 0;border-top:1px solid ${v.borderColor};text-align:center;">
   <p style="font-size:14px;color:${v.secondaryText};margin:0 0 8px;line-height:1.9;font-weight:300;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(`我是${data.author}，${data.bio}`)))}</p>
   <p style="font-size:12px;color:${v.mutedText};margin:0;line-height:1.8;letter-spacing:0.5px;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(data.cta)))}</p>
 </section>`

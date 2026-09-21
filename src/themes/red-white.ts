@@ -41,6 +41,17 @@ export const redWhite = createTheme({
   components: {
     cover: (data) => {
       const v = designVars
+      const tags = data.tags || []
+      // 底部栏没有内容时整块删掉，不留空 section（上游 WeChat 兼容铁律）
+      const footLeft = data.bottomLeft
+        ? `<p style="font-size:12px;color:${v.mutedText};margin:0;font-weight:500;">${wrapLeaf(escapeHtml(data.bottomLeft))}</p>`
+        : ''
+      const footTags = tags.length
+        ? `<section style="display:flex;gap:4px;">${tags.map((t) => `<span style="background:${v.lightBg};color:${v.primary};padding:2px 8px;border-radius:3px;font-size:10px;font-weight:600;">${wrapLeaf(escapeHtml(t))}</span>`).join('')}</section>`
+        : ''
+      const foot = footLeft || footTags
+        ? `<section style="border-top:1px solid ${v.borderColor};padding:10px 24px;display:flex;align-items:center;justify-content:space-between;">${footLeft}${footTags}</section>`
+        : ''
       return `<section style="margin:0 0 32px;background:#fff;border:1px solid ${v.borderColor};border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.05);">
   <section style="background:${v.primary};padding:8px 24px;display:flex;align-items:center;justify-content:space-between;">
     <span style="font-size:11px;font-weight:700;letter-spacing:2px;color:#fff;">${wrapLeaf(escapeHtml(data.topTag))}</span>
@@ -53,18 +64,15 @@ export const redWhite = createTheme({
     <section style="width:40px;height:3px;background:${v.primary};border-radius:2px;margin-bottom:12px;"><span leaf=""><br></span></section>
     <p style="font-size:13px;color:${v.mutedText};margin:0;line-height:1.7;">${wrapLeaf(escapeHtml(data.subtitle))}</p>
   </section>
-  <section style="border-top:1px solid ${v.borderColor};padding:10px 24px;display:flex;align-items:center;justify-content:space-between;">
-    <p style="font-size:12px;color:${v.mutedText};margin:0;font-weight:500;">${wrapLeaf(escapeHtml(data.bottomLeft))}</p>
-    <section style="display:flex;gap:4px;">${data.tags.map((t) => `<span style="background:${v.lightBg};color:${v.primary};padding:2px 8px;border-radius:3px;font-size:10px;font-weight:600;">${wrapLeaf(escapeHtml(t))}</span>`).join('')}</section>
-  </section>
+  ${foot}
 </section>`
     },
 
     chapterTitle: (data) => {
       const v = designVars
-      return `<section style="margin:36px 0 20px;padding-bottom:12px;border-bottom:2px solid ${v.primary};">
+      return `<section style="margin:36px 20px 20px;padding-bottom:12px;border-bottom:2px solid ${v.primary};">
   <section style="display:flex;align-items:baseline;gap:12px;margin-bottom:6px;">
-    <span style="font-size:32px;font-weight:900;color:${v.primary};line-height:1;letter-spacing:-2px;font-style:italic;">${wrapLeaf(escapeHtml(data.num))}</span>
+    <span style="font-size:32px;font-weight:900;color:${v.primary};line-height:1;letter-spacing:-2px;font-style:italic;flex-shrink:0;">${wrapLeaf(escapeHtml(data.num))}</span>
     <span style="font-size:11px;font-weight:700;color:${v.mutedText};letter-spacing:2px;text-transform:uppercase;">${wrapLeaf(escapeHtml(data.enLabel))}</span>
   </section>
   <p style="font-size:19px;font-weight:800;color:${v.titleColor};margin:0;line-height:1.4;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(data.title)))}</p>
@@ -73,7 +81,8 @@ export const redWhite = createTheme({
 
     signature: (data) => {
       const v = designVars
-      return `<section style="margin:40px 0 0;padding:28px 24px;background:${v.lightBg};border-radius:12px;border-top:3px solid ${v.primary};text-align:center;">
+      // 底部留 24px：下方紧接 footer-cta（互动三连），两块不能贴在一起
+      return `<section style="margin:40px 20px 24px;padding:28px 24px;background:${v.lightBg};border-radius:12px;border-top:3px solid ${v.primary};text-align:center;">
   <p style="font-size:14px;color:${v.secondaryText};margin:0 0 8px;line-height:1.8;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(`我是${data.author}，${data.bio}`)))}</p>
   <p style="font-size:13px;color:${v.mutedText};margin:0;line-height:1.8;">${wrapLeaf(escapeHtml(toFullWidthPunctuation(data.cta)))}</p>
 </section>`

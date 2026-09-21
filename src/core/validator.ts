@@ -16,7 +16,16 @@ const TAG_FORBIDDEN: { regex: RegExp; message: string }[] = [
   { regex: /<link[\s>]/i, message: '外部 <link>（CSS/字体）会被过滤' },
   { regex: /\sclass\s*=/i, message: 'class 属性会被剥离，请用内联 style' },
   { regex: /\sid\s*=/i, message: 'id 属性会被剥离' },
+  {
+    regex: /<span\s+leaf\s*=\s*""[^>]*\sstyle\s*=/i,
+    message:
+      '样式不得写在 <span leaf=""> 自身上——leaf 是编辑器的文本叶子节点，保存时会被重建并丢弃样式；' +
+      '请改为 <span style="..."><span leaf="">文字</span></span>',
+  },
 ]
+
+/** 空 leaf 节点：无内容占位，粘贴后被编辑器清理 */
+const EMPTY_LEAF = /<span\s+leaf\s*=\s*""\s*>\s*<\/span>/gi
 
 /** CSS 属性级禁止项（只检查 style="" 属性内的内容，不检查正文文本） */
 const CSS_FORBIDDEN: { regex: RegExp; message: string }[] = [
@@ -81,6 +90,15 @@ export function validateGzhHtml(html: string): ValidationResult {
       warnings.push({
         level: 'WARNING',
         message: `${unwrapped.length} 处中文文本未被 <span leaf> 包裹，样式可能丢失。例：${sample}`,
+      })
+    }
+
+    // 空 leaf 节点是无效占位，粘贴后会被编辑器清理
+    const emptyLeafCount = (html.match(EMPTY_LEAF) || []).length
+    if (emptyLeafCount > 0) {
+      warnings.push({
+        level: 'WARNING',
+        message: `${emptyLeafCount} 处空 <span leaf=""></span> 节点，粘贴后会被编辑器清理，建议移除`,
       })
     }
   }

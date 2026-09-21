@@ -84,7 +84,8 @@ export interface ThemeComponents {
   signature: (data: SignatureData) => string
   footerCta: () => string
   hr: () => string
-  listItem: (html: string, ordered: boolean, index: number) => string
+  /** isLast：该项是否为列表末项——末项要用正常段落间距，与后续内容分开 */
+  listItem: (html: string, ordered: boolean, index: number, isLast?: boolean) => string
 }
 
 export interface CoverData {

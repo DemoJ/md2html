@@ -101,18 +101,24 @@ export function wrapLeaf(text: string): string {
 }
 
 /**
- * 代码行渲染：转义 HTML 并保留行首缩进
+ * 代码行渲染：转义 HTML 并保住空白，且**不依赖 `white-space:pre`**。
  *
- * 代码行是放在 <p> 里的，而 HTML 在默认 white-space 下会折叠行首空白，
- * 导致代码块缩进全部丢失（所有行顶格）。这里把行首空格换成 &nbsp;，
- * 行内空格保持原样，这样长行仍能正常换行。
- * 制表符按编辑器一致的口径展开为 2 个空格。
+ * 上游 skill 明令禁用 `white-space:pre`：它会把 HTML 源码里 span 前的缩进和行间换行
+ * 原样渲染成大左缩进 + 空行；官方规范 1.8 也点名 `<pre>` 在移动端会溢出截断。
+ * 这里改用「不可折叠空白」方案，在 `white-space:normal` 下也能保住代码格式：
+ *   - 行首缩进空格 → 全部 `&nbsp;`（HTML 默认会折叠并删除行首空白）
+ *   - 行内连续空格 → 保留第一个为普通空格（留出折行点），其余转 `&nbsp;` 防止被折叠
+ * 行内单个空格保持原样，长行仍能正常换行；制表符按编辑器一致的口径展开为 2 个空格。
  */
 export function escapeCodeLine(line: string): string {
   const expanded = line.replace(/\t/g, '  ')
   const indent = expanded.match(/^ +/)?.[0] ?? ''
   const body = expanded.slice(indent.length)
-  return '&nbsp;'.repeat(indent.length) + escapeHtml(body)
+  const bodyHtml = escapeHtml(body).replace(
+    / {2,}/g,
+    (spaces) => ' ' + '&nbsp;'.repeat(spaces.length - 1)
+  )
+  return '&nbsp;'.repeat(indent.length) + bodyHtml
 }
 
 /**
@@ -202,27 +208,94 @@ export function generateEnLabel(title: string): string {
   return 'SECTION'
 }
 
+/** 关键词在一段纯文本中的命中区间 */
+interface KeywordHit {
+  start: number
+  end: number
+}
+
+/**
+ * 在一段纯文本中定位所有关键词命中区间。
+ * 长词优先、命中不重叠，返回结果按位置升序。
+ */
+function findKeywordHits(text: string, keywords: string[]): KeywordHit[] {
+  const candidates: KeywordHit[] = []
+
+  for (const kw of keywords) {
+    if (!kw || kw.length < 2) continue
+    let from = 0
+    while (from <= text.length - kw.length) {
+      const idx = text.indexOf(kw, from)
+      if (idx === -1) break
+      candidates.push({ start: idx, end: idx + kw.length })
+      from = idx + kw.length
+    }
+  }
+
+  // 长词优先，再按出现位置排序
+  candidates.sort((a, b) => b.end - b.start - (a.end - a.start) || a.start - b.start)
+
+  const picked: KeywordHit[] = []
+  for (const c of candidates) {
+    if (picked.some((p) => c.start < p.end && c.end > p.start)) continue
+    picked.push(c)
+  }
+  return picked.sort((a, b) => a.start - b.start)
+}
+
 /**
  * 在段落文本中标记关键词（加下划线）
- * @param html 段落 HTML（已包含 span leaf 包裹）
+ *
+ * 关键：`<span leaf="">` 是公众号编辑器的文本叶子节点，编辑器在保存时会重建它，
+ * 挂在它身上的 style 会被丢弃。因此样式一律挂到**外层 `<span>`**，leaf 只包纯文本：
+ *   ✅ <span style="border-bottom:2px solid #A7F3D0;"><span leaf="">关键词</span></span>
+ *   ❌ <span leaf="" style="border-bottom:2px solid #A7F3D0;">关键词</span>
+ *
+ * @param html 段落 HTML（文本已用 span leaf 包裹）
  * @param keywords 关键词数组
  * @param underlineCSS 下划线 CSS
  * @returns 标记后的 HTML
  */
 export function applyKeywordUnderline(html: string, keywords: string[], underlineCSS: string): string {
   if (!keywords || keywords.length === 0) return html
+  if (keywords.filter((k) => k && k.length >= 2).length === 0) return html
 
-  let result = html
-  for (const kw of keywords) {
-    if (!kw || kw.length < 2) continue
-    // 在 span leaf 内容中查找并替换
-    // 匹配 <span leaf="">包含关键词的文本</span>
-    const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    const regex = new RegExp(`(<span leaf="">)([^<]*?)(${escaped})([^<]*?)(</span>)`, 'g')
-    result = result.replace(regex, `$1$2</span><span leaf="" style="${underlineCSS}">$3</span><span leaf="">$4$5`)
-  }
+  // 只处理"纯文本 leaf"（内容不含子标签），逐节点替换，天然避免重复标记与空节点
+  return html.replace(/<span leaf="">([^<]*)<\/span>/g, (whole, text: string) => {
+    const hits = findKeywordHits(text, keywords)
+    if (hits.length === 0) return whole
 
-  return result
+    let out = ''
+    let cursor = 0
+    for (const hit of hits) {
+      if (hit.start > cursor) out += wrapLeaf(text.slice(cursor, hit.start))
+      out += `<span style="${underlineCSS}">${wrapLeaf(text.slice(hit.start, hit.end))}</span>`
+      cursor = hit.end
+    }
+    if (cursor < text.length) out += wrapLeaf(text.slice(cursor))
+    return out
+  })
+}
+
+/**
+ * 移除空元素（上游铁律：结构化区域没有内容时整块删掉，不留空节点）。
+ *
+ * 主题组件里大量使用「有值才渲染」的模板，但槽位为空时仍会留下
+ * `<p style="..."></p>` / `<section style="..."></section>` 这类空壳，
+ * 粘贴到公众号后是无效占位节点。这里从内到外反复清理，直到不再变化
+ * （移除子元素后父元素可能变空）。
+ *
+ * 内部含 `<br>`/`<img>`/`<svg>` 的元素不会被移除——它们是合法的占位或媒体容器。
+ */
+export function stripEmptyElements(html: string): string {
+  const EMPTY = /<(section|p|span)\b[^>]*>\s*<\/\1>/gi
+  let prev: string
+  let out = html
+  do {
+    prev = out
+    out = out.replace(EMPTY, '')
+  } while (out !== prev)
+  return out
 }
 
 /**
